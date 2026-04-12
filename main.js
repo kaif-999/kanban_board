@@ -1,8 +1,10 @@
 const todo = document.querySelector('#todo');
 const progress = document.querySelector('#progress')
 const done = document.querySelector('#done')
+let dragElement = null;
 
-// console.log(todo,progress,done)
+
+console.log(todo,progress,done)
 
 const tasks = document.querySelectorAll('.task');
 
@@ -10,13 +12,80 @@ const tasks = document.querySelectorAll('.task');
 tasks.forEach(task => {
 task.addEventListener("drag", (e) => {
     // console.log("dragging",e);
+dragElement = task;
+
+
 })
 })
 
-progress.addEventListener("dragenter", (e) => {
-   progress.classList.add("hover-over");
+
+function addDragEventsOnColumn(column) {
+column.addEventListener("dragenter", (e) => {
+e.preventDefault();
+column.classList.add("hover-over");
+})
+column.addEventListener("dragleave", (e) => {
+e.preventDefault();
+column.classList.remove("hover-over");
 })
 
-// progress.addEventListener("dragenter",(e) =>{
-// progress.classList.add("hover-over");
-// })
+
+column.addEventListener("dragover", (e) => {
+e.preventDefault();
+
+})
+
+column.addEventListener("drop", (e) => {
+e.preventDefault();
+console.log("dropped", dragElement, column )
+column.appendChild(dragElement);
+column.classList.remove("hover-over");
+})
+
+
+}
+
+
+addDragEventsOnColumn(todo);
+addDragEventsOnColumn(progress);
+addDragEventsOnColumn(done);
+
+/* Modal related Logic */
+const toggleModalButton = document.querySelector("#toggle-modal")
+const modalBg = document.querySelector(".modal .bg")
+const modal = document.querySelector(".modal")
+const addTaskButton = document.querySelector("#add-new-task")
+
+
+
+toggleModalButton.addEventListener("click",() => {
+
+    modal.classList.toggle("active")
+})
+
+
+
+modalBg.addEventListener("click", () => {
+
+modal.classList.remove("active")
+
+} )
+
+
+
+addTaskButton.addEventListener("", () => {
+    const taskTitle = document.querySelector("#task-title-input").value
+    const taskDesc = document.querySelector("#task-desc-input").value
+
+    const template =`<div  draggable="true" class="task">
+<h2>
+${taskTitle}
+</h2>
+<p>  ${taskDesc}</p>
+<button>Delete</button>
+</div>`
+
+})
+/* Modal related Logic */
+
+
