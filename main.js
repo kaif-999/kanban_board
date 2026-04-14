@@ -56,10 +56,7 @@ const modalBg = document.querySelector(".modal .bg")
 const modal = document.querySelector(".modal")
 const addTaskButton = document.querySelector("#add-new-task")
 
-
-
 toggleModalButton.addEventListener("click",() => {
-
     modal.classList.toggle("active")
 })
 
@@ -73,18 +70,21 @@ modal.classList.remove("active")
 
 
 
-addTaskButton.addEventListener("", () => {
+addTaskButton.addEventListener("click", () => {
     const taskTitle = document.querySelector("#task-title-input").value
     const taskDesc = document.querySelector("#task-desc-input").value
+const div = document.createElement("div")
+div.classList.add("task")
+div.setAttribute("draggable","true")
 
-    const template =`<div  draggable="true" class="task">
-<h2>
-${taskTitle}
-</h2>
-<p>  ${taskDesc}</p>
+
+div.innerHTML=`
+<h2>${taskTitle}</h2>
+<p>${taskDesc}</p>
 <button>Delete</button>
-</div>`
-
+`
+todo.appendChild(div)
+modal.classList.remove("active") 
 })
 /* Modal related Logic */
 
