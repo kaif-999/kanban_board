@@ -1,164 +1,161 @@
-let tasksData = {}
-const todo = document.querySelector('#todo');
-const progress = document.querySelector('#progress');
-const done = document.querySelector('#done');
+let tasksData = {};
+
+const todo = document.querySelector("#todo");
+const progress = document.querySelector("#progress");
+const done = document.querySelector("#done");
+
 const columns = [todo, progress, done];
 
 let dragElement = null;
 
-if (localStorage.getItem("tasks")) {
+/* ===========================
+   ADD TASK
+=========================== */
 
-    const data = JSON.parse(localStorage.getItem("tasks"));
+function addTask(title, desc, column) {
+    const div = document.createElement("div");
 
-    console.log(data)
+    div.classList.add("task");
+    div.setAttribute("draggable", "true");
 
-    for (const col in data) {
-        const column = document.querySelector(`#${col}`);
-        data [col].forEach(task =>{
-            const div = document.createElement("div")
+    div.innerHTML = `
+        <h2>${title}</h2>
+        <p>${desc}</p>
+        <button class="delete-btn">Delete</button>
+    `;
 
-            div.classList.add("task")
-            div.setAttribute("draggable","true")
+    column.appendChild(div);
 
-            div.innerHTML =`
-            <h2>${task.title}</h2>
-<p>${task.desc}</p>
-<button>Delete</button>  `
+    // Drag
+    div.addEventListener("dragstart", () => {
+        dragElement = div;
+    });
 
-column.appendChild(div)
+    // Delete
+    const deleteButton = div.querySelector(".delete-btn");
 
-div.addEventListener("drag", (e) => {
-    dragElement = div;
-})
-        })
-        const tasks = column.querySelectorAll(".task");
-        const count = column.querySelector(".right");
-        count.innerText = tasks.length;
-    }
+    deleteButton.addEventListener("click", () => {
+        div.remove();
+        updateTaskCount();
+    });
+
+    return div;
 }
-// console.log(todo,progress,done)
 
-const tasks = document.querySelectorAll('.task');
+/* ===========================
+   UPDATE COUNTS + STORAGE
+=========================== */
 
+function updateTaskCount() {
+    tasksData = {};
 
-tasks.forEach(task => {
-task.addEventListener("drag", (e) => {
-    // console.log("dragging",e);
-dragElement = task;
+    columns.forEach((col) => {
+        const tasks = col.querySelectorAll(".task");
+        const count = col.querySelector(".right");
 
+        tasksData[col.id] = Array.from(tasks).map((task) => ({
+            title: task.querySelector("h2").innerText,
+            desc: task.querySelector("p").innerText,
+        }));
 
-})
-})
+        count.innerText = tasks.length;
+    });
 
+    localStorage.setItem("tasks", JSON.stringify(tasksData));
+}
+
+/* ===========================
+   LOAD TASKS FROM STORAGE
+=========================== */
+
+if (localStorage.getItem("tasks")) {
+    tasksData = JSON.parse(localStorage.getItem("tasks"));
+
+    for (const col in tasksData) {
+        const column = document.querySelector(`#${col}`);
+
+        tasksData[col].forEach((task) => {
+            addTask(task.title, task.desc, column);
+        });
+    }
+
+    updateTaskCount();
+}
+
+/* ===========================
+   DRAG & DROP
+=========================== */
 
 function addDragEventsOnColumn(column) {
-column.addEventListener("dragenter", (e) => {
-e.preventDefault();
-column.classList.add("hover-over");
-})
-column.addEventListener("dragleave", (e) => {
-e.preventDefault();
-column.classList.remove("hover-over");
-})
+    column.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        column.classList.add("hover-over");
+    });
 
+    column.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        column.classList.remove("hover-over");
+    });
 
-column.addEventListener("dragover", (e) => {
-e.preventDefault();
+    column.addEventListener("dragover", (e) => {
+        e.preventDefault();
+    });
 
-})
+    column.addEventListener("drop", (e) => {
+        e.preventDefault();
 
-column.addEventListener("drop", (e) => {
-e.preventDefault();
-// console.log("dropped", dragElement, column )
-
-
-
-column.appendChild(dragElement);
-column.classList.remove("hover-over");
-
-columns.forEach(col => {
-    const tasks = col.querySelectorAll(".task");
-    const count = col.querySelector(".right");
-
-        
-    tasksData[col.id] = Array.from(tasks).map( t  => { 
-        return {
-            title: t.querySelector("h2").innerText,
-            desc: t.querySelector("p").innerText
+        if (dragElement) {
+            column.appendChild(dragElement);
         }
-    })
-    localStorage.setItem("tasks",JSON.stringify(tasksData));
-    count.innerText = tasks.length;
-})
 
-})
+        column.classList.remove("hover-over");
 
-
+        updateTaskCount();
+    });
 }
-
 
 addDragEventsOnColumn(todo);
 addDragEventsOnColumn(progress);
 addDragEventsOnColumn(done);
 
-/* Modal related Logic */
-const toggleModalButton = document.querySelector("#toggle-modal")
-const modalBg = document.querySelector(".modal .bg")
-const modal = document.querySelector(".modal")
-const addTaskButton = document.querySelector("#add-new-task")
+/* ===========================
+   MODAL
+=========================== */
 
-toggleModalButton.addEventListener("click",() => {
-    modal.classList.toggle("active")
-})
+const toggleModalButton = document.querySelector("#toggle-modal");
+const modalBg = document.querySelector(".modal .bg");
+const modal = document.querySelector(".modal");
+const addTaskButton = document.querySelector("#add-new-task");
 
-
+toggleModalButton.addEventListener("click", () => {
+    modal.classList.toggle("active");
+});
 
 modalBg.addEventListener("click", () => {
-
-modal.classList.remove("active")
-
-} )
-
-
+    modal.classList.remove("active");
+});
 
 addTaskButton.addEventListener("click", () => {
-    const taskTitle = document.querySelector("#task-title-input").value
-    const taskDesc = document.querySelector("#task-desc-input").value
-const div = document.createElement("div")
-div.classList.add("task")
-div.setAttribute("draggable","true")
+    const taskTitle = document.querySelector("#task-title-input").value.trim();
+    const taskDesc = document.querySelector("#task-desc-input").value.trim();
 
+    if (!taskTitle) {
+        alert("Please enter a task title");
+        return;
+    }
 
-div.innerHTML=`
-<h2>${taskTitle}</h2>
-<p>${taskDesc}</p>
-<button>Delete</button>
-`
-todo.appendChild(div)
+    addTask(taskTitle, taskDesc, todo);
 
+    updateTaskCount();
 
+    document.querySelector("#task-title-input").value = "";
+    document.querySelector("#task-desc-input").value = "";
 
-columns.forEach(col => {
-    const tasks = col.querySelectorAll(".task");
-    const count = col.querySelector(".right");
+    modal.classList.remove("active");
+});
 
-        
-    tasksData[col.id] = Array.from(tasks).map( t  => { 
-        return {
-            title: t.querySelector("h2").innerText,
-            desc: t.querySelector("p").innerText
-        }
-    })
-    localStorage.setItem("tasks",JSON.stringify(tasksData));
-    count.innerText = tasks.length;
-})
-div.addEventListener("drag",(e) => {
-dragElement = div;
+/* ===========================
+   INITIAL COUNTS
+=========================== */
 
-
-})
-modal.classList.remove("active") 
-})
-/* Modal related Logic */
-
-
+updateTaskCount();
